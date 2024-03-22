@@ -117,10 +117,10 @@ if __name__ == "__main__":
 
             latencies.append(duration)
             actual_results.append(actual_result)
-
-            print(f"Query {i + 1} completed in {duration:.4f}s")
             recall = calc_recall(options["K"], [expected_results[i].astype(np.float32)], actual_result)
-            print(f"Recall: {recall:.4f}")
+
+            print(f"Query {i + 1} completed in {duration:.4f}s" +
+                  f" with recall: {recall:.4f}")
             # print(f"Actual Result: {actual_result}")
             # print(f"Expected Result: {expected_results[i].tolist()}")
             # break

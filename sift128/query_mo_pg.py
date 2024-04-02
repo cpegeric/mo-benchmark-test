@@ -125,7 +125,7 @@ if __name__ == "__main__":
             # print(f"Expected Result: {expected_results[i].tolist()}")
             # break
             recalls.append(recall)
-            if i == 1000:
+            if i == 500:
                 break
 
         avg_latency = round(np.mean(latencies), 4)

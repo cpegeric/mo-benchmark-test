@@ -1,8 +1,8 @@
 """
 create database a;
 use a;
-create table t3(a int, b vecf32(960));
-create index idx3 using ivfflat on t3(b) lists=500 op_type "vector_l2_ops";
+create table t5(a int, b vecf32(960));
+create index idx5 using ivfflat on t5(b) lists=500 op_type "vector_l2_ops";
 """
 import binascii
 import time

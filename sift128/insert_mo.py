@@ -42,7 +42,7 @@ def run():
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    sql_insert = text("INSERT INTO t3 (a, b) VALUES (:id, decode(:data,'hex'));")
+    sql_insert = text("INSERT INTO t3 (a, b) VALUES (:id, unhex(:data));")
 
     start = time.time()
     vecList = fvecs_read("/Users/arjunsunilkumar/Downloads/benchmark/1million128/sift/sift_base.fvecs")

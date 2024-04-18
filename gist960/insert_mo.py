@@ -42,7 +42,7 @@ def run():
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    sql_insert = text("INSERT INTO t5 (a, b) VALUES (:id, decode(:data,'hex'));")
+    sql_insert = text("INSERT INTO t5 (a, b) VALUES (:id, cast(unhex(:data) as blob));")
 
     start = time.time()
     vecList = fvecs_read("/Users/arjunsunilkumar/Downloads/benchmark/1million/gist/gist_base.fvecs")

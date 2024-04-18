@@ -118,14 +118,16 @@ if __name__ == "__main__":
             latencies.append(duration)
             actual_results.append(actual_result)
 
-            print(f"Query {i + 1} completed in {duration:.4f}s")
+            # print(f"Query {i + 1} completed in {duration:.4f}s")
             recall = calc_recall(options["K"], [expected_results[i].astype(np.float32)], actual_result)
-            print(f"Recall: {recall:.4f}")
+            # print(f"Recall: {recall:.4f}")
             # print(f"Actual Result: {actual_result}")
             # print(f"Expected Result: {expected_results[i].tolist()}")
             # break
+            if i % 100 == 0:
+                print(f"Processed {i} queries")
             recalls.append(recall)
-            if i == 1000:
+            if i == 500:
                 break
 
         avg_latency = round(np.mean(latencies), 4)

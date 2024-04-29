@@ -17,7 +17,6 @@ expectedRecall = 0.70
 expectedQps = 35
 
 
-
 # --------------------------------------------------------------------------------
 def read_fvecs_file(filename, c_contiguous=True):
     fv = np.fromfile(filename, dtype=np.float32)
@@ -69,10 +68,7 @@ def calc_recall(count: int, ground_truth: list[np.ndarray], got: list[int]) -> f
 
 # --------------------------------------------------------------------------------
 
-def createTbl():
-    engine = create_engine("mysql+mysqldb://root:111@127.0.0.1:6001/")
-    Session = sessionmaker(bind=engine)
-    session = Session()
+def runCreateTable(session):
     session.execute(text("DROP DATABASE IF EXISTS vecdb;"))
     session.commit()
     session.execute(text("CREATE DATABASE vecdb;"))
@@ -99,7 +95,7 @@ def runInserts(session):
         session.execute(sql_insert, {"id": i, "data": binVecList[i]})
         if i % 1000 == 0:
             if time.time() - start_time > expectedInsertDuration:
-                raise RuntimeError("Execution time exceeded "+str(expectedInsertDuration)+". Panic and abort!")
+                raise RuntimeError("Execution time exceeded " + str(expectedInsertDuration) + ". Panic and abort!")
             print(f"inserted {i} rows")
     session.commit()
 
@@ -118,7 +114,7 @@ def runCreateIndex(session):
     print(f"Index creation took {time.time() - begin:.4f}s")
 
 
-def runQueries(session):
+def runSelect(session):
     query_vectors = read_fvecs_file(sift_128_path + 'sift_query.fvecs')
     expected_results = read_ivecs_file(sift_128_path + 'sift_groundtruth.ivecs')
     latencies, recalls = [], []
@@ -129,7 +125,8 @@ def runQueries(session):
         # build query
         count += 1
         input_vector_str = '[' + ','.join(map(str, vec)) + ']'
-        select_query = text("SELECT id FROM " + table_name + " ORDER BY l2_distance(vec, '" + input_vector_str + "') LIMIT 100;")
+        select_query = text(
+            "SELECT id FROM " + table_name + " ORDER BY l2_distance(vec, '" + input_vector_str + "') LIMIT 100;")
 
         # execute query
         start_time = time.perf_counter()
@@ -153,18 +150,22 @@ def runQueries(session):
         f"Recall: {avg_recall:.4f}, Total Duration: {total_duration:.4f}s, Avg Latency: {avg_latency:.4f}, QPS: {qps:.4f}")
 
     if avg_recall < expectedRecall:
-        raise RuntimeError("Recall is less than "+str(expectedRecall)+". Panic and abort!")
+        raise RuntimeError("Recall is less than " + str(expectedRecall) + ". Panic and abort!")
 
     if qps < expectedQps:
-        raise RuntimeError("QPS is less than "+str(expectedQps)+". Panic and abort!")
+        raise RuntimeError("QPS is less than " + str(expectedQps) + ". Panic and abort!")
 
 
 def main():
     try:
-        session = createTbl()
+        engine = create_engine("mysql+mysqldb://root:111@127.0.0.1:6001/")
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        runCreateTable(session)
         runInserts(session)
         runCreateIndex(session)
-        runQueries(session)
+        runSelect(session)
     except RuntimeError as e:
         print(e)
 

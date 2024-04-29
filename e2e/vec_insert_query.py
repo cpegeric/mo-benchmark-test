@@ -13,7 +13,7 @@ probe = "5"
 topK = 100
 
 expectedInsertDuration = 6 * 60
-expectedRecall = 0.68
+expectedRecall = 0.70
 expectedQps = 35
 
 

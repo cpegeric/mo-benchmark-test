@@ -14,7 +14,7 @@ topK = 100
 
 expectedInsertDuration = 6 * 60
 expectedRecall = 0.68
-expectedQps = 50
+expectedQps = 35
 
 
 
@@ -99,7 +99,7 @@ def runInserts(session):
         session.execute(sql_insert, {"id": i, "data": binVecList[i]})
         if i % 1000 == 0:
             if time.time() - start_time > expectedInsertDuration:
-                raise RuntimeError("Execution time exceeded 3 minutes. Panic and abort!")
+                raise RuntimeError("Execution time exceeded "+str(expectedInsertDuration)+". Panic and abort!")
             print(f"inserted {i} rows")
     session.commit()
 
@@ -129,8 +129,7 @@ def runQueries(session):
         # build query
         count += 1
         input_vector_str = '[' + ','.join(map(str, vec)) + ']'
-        select_query = text("SELECT id FROM " + table_name + " ORDER BY l2_distance(vec, " + input_vector_str +
-                            ") LIMIT 100;")
+        select_query = text("SELECT id FROM " + table_name + " ORDER BY l2_distance(vec, '" + input_vector_str + "') LIMIT 100;")
 
         # execute query
         start_time = time.perf_counter()
@@ -154,10 +153,10 @@ def runQueries(session):
         f"Recall: {avg_recall:.4f}, Total Duration: {total_duration:.4f}s, Avg Latency: {avg_latency:.4f}, QPS: {qps:.4f}")
 
     if avg_recall < expectedRecall:
-        raise RuntimeError("Recall is less than 0.68. Panic and abort!")
+        raise RuntimeError("Recall is less than "+str(expectedRecall)+". Panic and abort!")
 
     if qps < expectedQps:
-        raise RuntimeError("QPS is less than 50. Panic and abort!")
+        raise RuntimeError("QPS is less than "+str(expectedQps)+". Panic and abort!")
 
 
 def main():

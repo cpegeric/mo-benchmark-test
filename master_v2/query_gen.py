@@ -38,7 +38,7 @@ def get_column_values(table, column_name):
         return []
 
 
-def run_queries(n=1000):
+def run_queries(n=5000):
     total_time = 0
     with open('query_results.csv', mode='w', newline='') as result_file, open('query_strings.csv', mode='w',
                                                                               newline='') as query_file:

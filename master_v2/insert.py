@@ -50,7 +50,7 @@ def generate_random_string(length=10):
     return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(length))
 
 
-def insert_random_rows(n=10_000, batch_size=1_000):
+def insert_random_rows(n=100_000, batch_size=1_000):
     print(f"Inserting {n} rows into 'tbl' with batch size {batch_size}.")
     for batch_start in range(0, n, batch_size):
         batch_data = []

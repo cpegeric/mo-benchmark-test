@@ -110,8 +110,11 @@ if __name__ == "__main__":
             count += 1
             select_query = build_knn_query_template_with_ivfflat(vec, options)
             start_time = time.perf_counter()
-            # print(select_query)
-            # break
+            # if i==100:
+            #     print(select_query)
+            #     break
+
+
             actual_result = execute_knn_query(select_query, conn)
             duration = time.perf_counter() - start_time
 
@@ -127,7 +130,7 @@ if __name__ == "__main__":
             if i % 100 == 0:
                 print(f"Processed {i} queries")
             recalls.append(recall)
-            if i == 500:
+            if i == 1000:
                 break
 
         avg_latency = round(np.mean(latencies), 4)

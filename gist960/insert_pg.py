@@ -1,7 +1,7 @@
 """
 CREATE EXTENSION vector;
-CREATE TABLE t3 (a bigserial, b vector(128));
-CREATE INDEX idx3 ON t3 USING ivfflat (b vector_l2_ops) WITH (lists = 500);
+create table t5(a bigserial, b vector(960));
+CREATE INDEX idx5 ON t5 USING ivfflat (b vector_l2_ops) WITH (lists = 500);
 """
 
 import time
@@ -11,8 +11,8 @@ from sqlalchemy.orm import sessionmaker, mapped_column, DeclarativeBase
 
 from pgvector.sqlalchemy import Vector
 
-table_name = "t3"
-vec_len = 128
+table_name = "t5"
+vec_len = 960
 
 
 class Base(DeclarativeBase):
@@ -33,10 +33,12 @@ def run():
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    vecList = read_fvec("/Users/arjunsunilkumar/Downloads/benchmark/1million128/sift/sift_base.fvecs")
+    vecList = read_fvec("/Users/arjunsunilkumar/Downloads/benchmark/1million/gist/gist_base.fvecs")
     for i in range(0, len(vecList)):
         item = Item(b=vecList[i])
         session.add(item)
+        if i % 1000 == 0:
+            print(f"inserted {i}")
 
     session.commit()
 

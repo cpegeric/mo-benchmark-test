@@ -108,7 +108,8 @@ def execute_query_batch(start_index, end_index, db_url, query_vectors, expected_
             if i % 100 == 0:
                 print(f"Processed {i} queries in range {start_index}-{end_index}")
 
-    return latencies, recalls, count
+    total_duration = sum(latencies)
+    return latencies, recalls, count, total_duration
 
 
 def main():
@@ -148,10 +149,10 @@ def main():
     all_latencies = [lat for res in results for lat in res[0]]
     all_recalls = [rec for res in results for rec in res[1]]
     total_queries = sum(res[2] for res in results)
+    total_duration = max(res[3] for res in results)
 
     avg_latency = round(np.mean(all_latencies), 4)
     avg_recall = round(np.mean(all_recalls), 4)
-    total_duration = round(np.sum(all_latencies), 4)
     qps = round(total_queries / total_duration, 4)
 
     print(

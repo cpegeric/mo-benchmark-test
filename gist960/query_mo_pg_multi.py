@@ -4,6 +4,7 @@ import numpy as np
 import struct
 import concurrent.futures
 
+
 def read_fvecs_file(filename, start=1, end=-1):
     vectors = []
     with open(filename, 'rb') as f:
@@ -92,8 +93,8 @@ def execute_query_batch(start_index, end_index, db_url, query_vectors, expected_
         for i in range(start_index, end_index):
             count += 1
             select_query = build_knn_query_template_with_ivfflat(query_vectors[i], options)
-            start_time = time.perf_counter()
 
+            start_time = time.perf_counter()
             actual_result = execute_knn_query(select_query, conn)
             duration = time.perf_counter() - start_time
 
@@ -111,8 +112,8 @@ def execute_query_batch(start_index, end_index, db_url, query_vectors, expected_
 
 def main():
     query_vectors = read_fvecs_file('/Users/arjunsunilkumar/Downloads/benchmark/1million/gist/gist_query.fvecs')
-    expected_results = read_ivecs_file('/Users/arjunsunilkumar/Downloads/benchmark/1million/gist/gist_groundtruth.ivecs')
-    actual_results = []
+    expected_results = read_ivecs_file(
+        '/Users/arjunsunilkumar/Downloads/benchmark/1million/gist/gist_groundtruth.ivecs')
 
     options = {
         "DBType": "mysql",
@@ -138,7 +139,9 @@ def main():
             start_index = i * batch_size
             end_index = start_index + batch_size if i < 2 else num_queries
             futures.append(
-                executor.submit(execute_query_batch, start_index, end_index, db_url, query_vectors, expected_results, options))
+                executor.submit(execute_query_batch, start_index, end_index, db_url, query_vectors, expected_results,
+                                options))
+
         results = [f.result() for f in futures]
 
     all_latencies = [lat for res in results for lat in res[0]]
@@ -150,7 +153,9 @@ def main():
     total_duration = round(np.sum(all_latencies), 4)
     qps = round(total_queries / total_duration, 4)
 
-    print(f"Recall: {avg_recall:.4f}, Total Duration: {total_duration:.4f}s, Avg Latency: {avg_latency:.4f}, QPS: {qps:.4f}")
+    print(
+        f"Recall: {avg_recall:.4f}, Total Duration: {total_duration:.4f}s, Avg Latency: {avg_latency:.4f}, QPS: {qps:.4f}")
+
 
 if __name__ == "__main__":
     main()

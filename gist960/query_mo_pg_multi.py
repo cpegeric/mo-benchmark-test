@@ -4,8 +4,6 @@ import numpy as np
 import struct
 import concurrent.futures
 
-parallelism = 16
-
 def read_fvecs_file(filename, start=1, end=-1):
     vectors = []
     with open(filename, 'rb') as f:
@@ -123,8 +121,9 @@ def main():
         "OrgTblName": "t5",
         "OrgTblIdName": "a",
         "OrgTblSkName": "b",
-        "ProbeVal": 5,
+        "ProbeVal": 10,
         "K": 100,
+        "parallelism": 4,
     }
 
     if options["DBType"] == "mysql":
@@ -133,11 +132,11 @@ def main():
         db_url = "postgresql+psycopg2://postgres:111@127.0.0.1:5432/" + options["DbName"]
 
     num_queries = len(query_vectors)
-    batch_size = num_queries // parallelism
+    batch_size = num_queries // options["parallelism"]
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=parallelism) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=options["parallelism"]) as executor:
         futures = []
-        for i in range(parallelism):
+        for i in range(options["parallelism"]):
             start_index = i * batch_size
             end_index = min(start_index + batch_size, num_queries)
             futures.append(

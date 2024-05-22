@@ -1,11 +1,8 @@
 import time
-
 from sqlalchemy import create_engine, text
 import numpy as np
 import struct
 import concurrent.futures
-import numpy as np
-import time
 
 def read_fvecs_file(filename, start=1, end=-1):
     vectors = []
@@ -62,7 +59,7 @@ def build_knn_query_template_with_ivfflat(input_vector_val, options):
     return sel_qry
 
 
-def exec_set_params(conn,options):
+def exec_set_params(conn, options):
     probe_val = options['ProbeVal']
     if options['DBType'] == 'mysql':
         set_qry = f"SET @probe_limit={probe_val};"
@@ -82,30 +79,35 @@ def calc_recall(count: int, ground_truth: list[np.ndarray], got: list[int]) -> f
     return np.mean(match)
 
 
-def execute_query_batch(start_index, end_index, conn, query_vectors, expected_results, options):
+def execute_query_batch(start_index, end_index, db_url, query_vectors, expected_results, options):
     latencies = []
     actual_results = []
     recalls = []
     count = 0
 
-    for i in range(start_index, end_index):
-        count += 1
-        select_query = build_knn_query_template_with_ivfflat(query_vectors[i], options)
-        start_time = time.perf_counter()
+    engine = create_engine(db_url)
+    with engine.connect() as conn:
+        exec_set_params(conn, options)
 
-        actual_result = execute_knn_query(select_query, conn)
-        duration = time.perf_counter() - start_time
+        for i in range(start_index, end_index):
+            count += 1
+            select_query = build_knn_query_template_with_ivfflat(query_vectors[i], options)
+            start_time = time.perf_counter()
 
-        latencies.append(duration)
-        actual_results.append(actual_result)
+            actual_result = execute_knn_query(select_query, conn)
+            duration = time.perf_counter() - start_time
 
-        recall = calc_recall(options["K"], [expected_results[i].astype(np.float32)], actual_result)
-        recalls.append(recall)
+            latencies.append(duration)
+            actual_results.append(actual_result)
 
-        if i % 100 == 0:
-            print(f"Processed {i} queries in range {start_index}-{end_index}")
+            recall = calc_recall(options["K"], [expected_results[i].astype(np.float32)], actual_result)
+            recalls.append(recall)
+
+            if i % 100 == 0:
+                print(f"Processed {i} queries in range {start_index}-{end_index}")
 
     return latencies, recalls, count
+
 
 def main():
     query_vectors = read_fvecs_file('/Users/arjunsunilkumar/Downloads/benchmark/1million/gist/gist_query.fvecs')
@@ -123,37 +125,32 @@ def main():
     }
 
     if options["DBType"] == "mysql":
-        engine = create_engine("mysql+mysqldb://root:111@127.0.0.1:6001/" + options["DbName"])
+        db_url = "mysql+mysqldb://root:111@127.0.0.1:6001/" + options["DbName"]
     else:
-        engine = create_engine("postgresql+psycopg2://postgres:111@127.0.0.1:5432/" + options["DbName"])
+        db_url = "postgresql+psycopg2://postgres:111@127.0.0.1:5432/" + options["DbName"]
 
     num_queries = len(query_vectors)
     batch_size = num_queries // 3
 
-    with engine.connect() as conn:
-        exec_set_params(conn, options)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        futures = []
+        for i in range(3):
+            start_index = i * batch_size
+            end_index = start_index + batch_size if i < 2 else num_queries
+            futures.append(
+                executor.submit(execute_query_batch, start_index, end_index, db_url, query_vectors, expected_results, options))
+        results = [f.result() for f in futures]
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-            futures = []
-            for i in range(3):
-                start_index = i * batch_size
-                end_index = start_index + batch_size if i < 2 else num_queries
-                futures.append(
-                    executor.submit(execute_query_batch, start_index, end_index, conn, query_vectors, expected_results, options))
-                if i==0:
-                    break
-            results = [f.result() for f in futures]
+    all_latencies = [lat for res in results for lat in res[0]]
+    all_recalls = [rec for res in results for rec in res[1]]
+    total_queries = sum(res[2] for res in results)
 
-        all_latencies = [lat for res in results for lat in res[0]]
-        all_recalls = [rec for res in results for rec in res[1]]
-        total_queries = sum(res[2] for res in results)
+    avg_latency = round(np.mean(all_latencies), 4)
+    avg_recall = round(np.mean(all_recalls), 4)
+    total_duration = round(np.sum(all_latencies), 4)
+    qps = round(total_queries / total_duration, 4)
 
-        avg_latency = round(np.mean(all_latencies), 4)
-        avg_recall = round(np.mean(all_recalls), 4)
-        total_duration = round(np.sum(all_latencies), 4)
-        qps = round(total_queries / total_duration, 4)
-
-        print(f"Recall: {avg_recall:.4f}, Total Duration: {total_duration:.4f}s, Avg Latency: {avg_latency:.4f}, QPS: {qps:.4f}")
+    print(f"Recall: {avg_recall:.4f}, Total Duration: {total_duration:.4f}s, Avg Latency: {avg_latency:.4f}, QPS: {qps:.4f}")
 
 if __name__ == "__main__":
     main()

@@ -4,6 +4,7 @@ import numpy as np
 import struct
 import concurrent.futures
 
+parallelism = 2
 
 def read_fvecs_file(filename, start=1, end=-1):
     vectors = []
@@ -131,13 +132,13 @@ def main():
         db_url = "postgresql+psycopg2://postgres:111@127.0.0.1:5432/" + options["DbName"]
 
     num_queries = len(query_vectors)
-    batch_size = num_queries // 3
+    batch_size = num_queries // parallelism
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=parallelism) as executor:
         futures = []
-        for i in range(3):
+        for i in range(parallelism):
             start_index = i * batch_size
-            end_index = start_index + batch_size if i < 2 else num_queries
+            end_index = min(start_index + batch_size, num_queries)
             futures.append(
                 executor.submit(execute_query_batch, start_index, end_index, db_url, query_vectors, expected_results,
                                 options))

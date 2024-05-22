@@ -132,7 +132,7 @@ def main():
         "OrgTblSkName": "b",
         "ProbeVal": 5,
         "K": 100,
-        "parallelism": 8,
+        "parallelism": 4,
     }
 
     if options["DBType"] == "mysql":

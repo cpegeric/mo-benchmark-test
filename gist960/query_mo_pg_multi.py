@@ -149,14 +149,14 @@ def main():
     all_latencies = [lat for res in results for lat in res[0]]
     all_recalls = [rec for res in results for rec in res[1]]
     total_queries = sum(res[2] for res in results)
-    total_duration = max(res[3] for res in results)
+    max_duration_of_all_threads = max(res[3] for res in results)
 
     avg_latency = round(np.mean(all_latencies), 4)
     avg_recall = round(np.mean(all_recalls), 4)
-    qps = round(total_queries / total_duration, 4)
+    qps = round(total_queries / max_duration_of_all_threads, 4)
 
     print(
-        f"Recall: {avg_recall:.4f}, Total Duration: {total_duration:.4f}s, Avg Latency: {avg_latency:.4f}, QPS: {qps:.4f}")
+        f"Recall: {avg_recall:.4f}, Max Duration among all threads: {max_duration_of_all_threads:.4f}s, Avg Latency: {avg_latency:.4f}, QPS: {qps:.4f}")
 
 
 if __name__ == "__main__":

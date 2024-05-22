@@ -4,6 +4,15 @@ import numpy as np
 import struct
 import concurrent.futures
 
+'''
+NOTE: 
+Replace gist_query.fvecs and gist_groundtruth.ivecs with the query and groundtruth files of your dataset respectively.
+
+Download it from the following link:http://corpus-texmex.irisa.fr/
+
+Download gist.tar.gz (2.6GB)
+'''
+
 def read_fvecs_file(filename, start=1, end=-1):
     vectors = []
     with open(filename, 'rb') as f:
@@ -123,7 +132,7 @@ def main():
         "OrgTblSkName": "b",
         "ProbeVal": 5,
         "K": 100,
-        "parallelism": 4,
+        "parallelism": 8,
     }
 
     if options["DBType"] == "mysql":

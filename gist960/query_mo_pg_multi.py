@@ -103,23 +103,13 @@ def execute_query_batch(start_index, end_index, conn, query_vectors, expected_re
         recalls.append(recall)
 
         if i % 100 == 0:
-            print(f"Processed {i} queries")
+            print(f"Processed {i} queries in range {start_index}-{end_index}")
 
-        if i == 1000:
-            break
-
-    avg_latency = round(np.mean(latencies), 4)
-    avg_recall = round(np.mean(recalls), 4)
-    total_duration = round(np.sum(latencies), 4)
-    qps = round(count / total_duration, 4)
-
-    return avg_latency, avg_recall, total_duration, qps
-
+    return latencies, recalls, count
 
 def main():
     query_vectors = read_fvecs_file('/Users/arjunsunilkumar/Downloads/benchmark/1million/gist/gist_query.fvecs')
-    expected_results = read_ivecs_file(
-        '/Users/arjunsunilkumar/Downloads/benchmark/1million/gist/gist_groundtruth.ivecs')
+    expected_results = read_ivecs_file('/Users/arjunsunilkumar/Downloads/benchmark/1million/gist/gist_groundtruth.ivecs')
     actual_results = []
 
     options = {
@@ -140,32 +130,30 @@ def main():
     num_queries = len(query_vectors)
     batch_size = num_queries // 3
 
-    count = 0
     with engine.connect() as conn:
-        exec_set_params(conn,options)
+        exec_set_params(conn, options)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
             futures = []
             for i in range(3):
                 start_index = i * batch_size
                 end_index = start_index + batch_size if i < 2 else num_queries
-                count+= end_index - start_index
                 futures.append(
-                    executor.submit(execute_query_batch, start_index, end_index, conn, query_vectors, expected_results,
-                                    options))
-                if i == 0:
+                    executor.submit(execute_query_batch, start_index, end_index, conn, query_vectors, expected_results, options))
+                if i==0:
                     break
-
             results = [f.result() for f in futures]
 
-        avg_latency = round(np.mean([res[0] for res in results]), 4)
-        avg_recall = round(np.mean([res[1] for res in results]), 4)
-        total_duration = round(np.sum([res[2] for res in results]), 4)
-        qps = round(count / total_duration, 4)
+        all_latencies = [lat for res in results for lat in res[0]]
+        all_recalls = [rec for res in results for rec in res[1]]
+        total_queries = sum(res[2] for res in results)
 
-        print(
-            f"Recall: {avg_recall:.4f}, Total Duration: {total_duration:.4f}s, Avg Latency: {avg_latency:.4f}, QPS: {qps:.4f}")
+        avg_latency = round(np.mean(all_latencies), 4)
+        avg_recall = round(np.mean(all_recalls), 4)
+        total_duration = round(np.sum(all_latencies), 4)
+        qps = round(total_queries / total_duration, 4)
 
+        print(f"Recall: {avg_recall:.4f}, Total Duration: {total_duration:.4f}s, Avg Latency: {avg_latency:.4f}, QPS: {qps:.4f}")
 
 if __name__ == "__main__":
     main()

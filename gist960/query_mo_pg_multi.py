@@ -121,7 +121,7 @@ def main():
         "OrgTblName": "t5",
         "OrgTblIdName": "a",
         "OrgTblSkName": "b",
-        "ProbeVal": 10,
+        "ProbeVal": 5,
         "K": 100,
         "parallelism": 4,
     }

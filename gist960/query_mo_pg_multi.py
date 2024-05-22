@@ -4,7 +4,7 @@ import numpy as np
 import struct
 import concurrent.futures
 
-parallelism = 2
+parallelism = 16
 
 def read_fvecs_file(filename, start=1, end=-1):
     vectors = []
@@ -83,7 +83,6 @@ def calc_recall(count: int, ground_truth: list[np.ndarray], got: list[int]) -> f
 
 def execute_query_batch(start_index, end_index, db_url, query_vectors, expected_results, options):
     latencies = []
-    actual_results = []
     recalls = []
     count = 0
 
@@ -100,7 +99,6 @@ def execute_query_batch(start_index, end_index, db_url, query_vectors, expected_
             duration = time.perf_counter() - start_time
 
             latencies.append(duration)
-            actual_results.append(actual_result)
 
             recall = calc_recall(options["K"], [expected_results[i].astype(np.float32)], actual_result)
             recalls.append(recall)
@@ -118,6 +116,8 @@ def main():
         '/Users/arjunsunilkumar/Downloads/benchmark/1million/gist/gist_groundtruth.ivecs')
 
     options = {
+        # "DBType": "postgres",
+        # "DbName": "postgres",
         "DBType": "mysql",
         "DbName": "a",
         "OrgTblName": "t5",

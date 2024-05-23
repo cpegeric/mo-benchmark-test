@@ -52,6 +52,11 @@ def run():
     print(f"binary duration={time.time() - start}")
 
     for i in range(0, len(binVecList)):
+
+        # sql_with_values = f"INSERT INTO t3 (a, b) VALUES ({i}, cast(unhex('{binVecList[i]}') as blob));"
+        # print(sql_with_values)
+        # return
+
         session.execute(sql_insert, {"id": i, "data": binVecList[i]})
         if i % 1000 == 0:
             print(f"inserted {i}")

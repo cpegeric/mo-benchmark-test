@@ -1,9 +1,13 @@
+asgiref==3.8.1
 asyncmy==0.2.9
+Django==4.2.13
 greenlet==3.0.3
-mysqlclient==2.2.1
+image==1.5.33
+mysqlclient==2.2.4
 numpy==1.26.3
 pandas==2.1.4
 pgvector==0.2.5
+pillow==10.3.0
 pool==0.1.2.dev0
 psycopg2-binary==2.9.9
 pyarrow==14.0.2
@@ -13,5 +17,6 @@ python-dateutil==2.8.2
 pytz==2023.3.post1
 six==1.16.0
 SQLAlchemy==2.0.25
+sqlparse==0.5.0
 typing_extensions==4.7.1
 tzdata==2023.4

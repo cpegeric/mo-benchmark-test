@@ -7,10 +7,21 @@ create index idx3 using ivfflat on t3(b) lists=500 op_type "vector_l2_ops";
 import binascii
 import time
 
+import sys
 import numpy as np
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
+def to_db_str(value):
+    if value is None:
+        return value
+
+    value = np.asarray(value, dtype='<f4')
+    if value.ndim != 1:
+        raise ValueError('expected ndim to be 1')
+
+    s = '[' + ','.join(str(x) for x in value) + ']'
+    return s
 
 def to_db_binary(value):
     if value is None:
@@ -42,25 +53,30 @@ def run():
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    sql_insert = text("INSERT INTO t3 (a, b) VALUES (:id, cast(unhex(:data) as blob));")
+    sql_insert = text("INSERT INTO t3 (a, b) VALUES (:id, :data);")
 
     start = time.time()
-    vecList = fvecs_read("/Users/arjunsunilkumar/Downloads/benchmark/1million128/sift/sift_base.fvecs")
+    vecList = fvecs_read("/Users/eric/github/mo-benchmark-test/dataset/sift/sift_base.fvecs")
     binVecList = []
     for i in range(0, len(vecList)):
-        binVecList.append(to_db_binary(vecList[i]))
+        binVecList.append(to_db_str(vecList[i]))
     print(f"binary duration={time.time() - start}")
 
+    rows = []
     for i in range(0, len(binVecList)):
 
         # sql_with_values = f"INSERT INTO t3 (a, b) VALUES ({i}, cast(unhex('{binVecList[i]}') as blob));"
         # print(sql_with_values)
         # return
 
-        session.execute(sql_insert, {"id": i, "data": binVecList[i]})
+        rows.append({"id": i, "data": binVecList[i]})
         if i % 1000 == 0:
+            session.execute(sql_insert, rows)
+            rows = []
             print(f"inserted {i}")
 
+    if len(rows) > 0:
+        session.execute(sql_insert, rows)
     # commit last
     session.commit()
 

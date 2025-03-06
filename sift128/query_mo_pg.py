@@ -80,9 +80,9 @@ def calc_recall(count: int, ground_truth: list[np.ndarray], got: list[int]) -> f
 
 
 if __name__ == "__main__":
-    query_vectors = read_fvecs_file('/Users/arjunsunilkumar/Downloads/benchmark/1million128/sift/sift_query.fvecs')
+    query_vectors = read_fvecs_file('/Users/eric/github/mo-benchmark-test/dataset/sift/sift_query.fvecs')
     expected_results = read_ivecs_file(
-        '/Users/arjunsunilkumar/Downloads/benchmark/1million128/sift/sift_groundtruth.ivecs')
+        '/Users/eric/github/mo-benchmark-test/dataset/sift/sift_groundtruth.ivecs')
     actual_results = []
 
     options = {
@@ -93,7 +93,7 @@ if __name__ == "__main__":
         "OrgTblName": "t3",
         "OrgTblIdName": "a",
         "OrgTblSkName": "b",
-        "ProbeVal": 5,
+        "ProbeVal": 25,
         "K": 100,
     }
 

@@ -80,10 +80,22 @@ def run():
     # commit last
     session.commit()
 
+def dumpcsv():
+    vecList = fvecs_read("/Users/eric/github/mo-benchmark-test/dataset/sift/sift_base.fvecs")
+    binVecList = []
+    pkList = []
+    for i in range(0, len(vecList)):
+        pkList.append(i)
+        binVecList.append(to_db_str(vecList[i]))
+
+    np.savetxt('sift128_base.csv', [p for p in zip(pkList, binVecList)], delimiter=':', fmt='%s')
+    
+
 
 def main():
     start = time.time()
     run()
+    #dumpcsv()
     duration = time.time() - start
     print(f"duration={duration}")
 

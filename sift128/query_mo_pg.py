@@ -62,11 +62,13 @@ def build_knn_query_template_with_ivfflat(input_vector_val, options):
 def exec_set_params(conn):
     probe_val = options['ProbeVal']
     if options['DBType'] == 'mysql':
-        set_qry = f"SET @probe_limit={probe_val};"
+        #set_qry = f"SET @probe_limit={probe_val};"
+        set_qry = f"SET probe_limit={probe_val};"
     else:
         set_qry = f"SET ivfflat.probes={probe_val};"
     conn.execute(text(set_qry))
 
+    conn.execute(text("set ivf_threads_search=0;"))
 
 def calc_recall(count: int, ground_truth: list[np.ndarray], got: list[int]) -> float:
     ground_truth_set = set(np.concatenate(ground_truth))
